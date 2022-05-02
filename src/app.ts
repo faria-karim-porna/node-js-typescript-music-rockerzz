@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const fileUpload = require("express-fileupload");
+const fs = require("fs");
 
 const app: Application = express();
 app.use(bodyParser.json());
@@ -31,21 +32,27 @@ client.connect((err: any) => {
 
   app.post("/uploadAudio", (req: any, res: Response) => {
     const file = req.files.file;
-    // const serviceTitle = req.body.serviceTitle;
-    // const serviceDescription = req.body.serviceDescription;
-    // console.log(file);
+    const albumName = "3 Idiots";
     const imageList = [];
     const musicList = [];
-    // const serviceTitle = req.body.serviceTitle;
-    // const serviceDescription = req.body.serviceDescription;
+    fs.mkdirSync(`${__dirname}/audios/${albumName}`);
     for (let index = 0; index < file.length; index++) {
       const newFile = file[index].data;
       const encFile = newFile.toString("base64");
       const fileObj = {
         contentType: file[index].mimetype,
         size: file[index].size,
-        img: Buffer.from(encFile, "base64"),
+        filePath: `audios/${albumName}/${file[index].name}`,
       };
+      file[index].mv(
+        `${__dirname}/audios/${albumName}/${file[index].name}`,
+        (err: any) => {
+          if (err) {
+            console.log(err);
+            return res.status(500).send({ msg: "Failed To Upload" });
+          }
+        }
+      );
       if (file[index].mimetype === "image/jpeg") {
         imageList.push(fileObj);
       } else {
