@@ -31,14 +31,16 @@ client.connect((err: any) => {
   // const reviewsCollection = client.db("creativeAgency").collection("reviews");
 
   app.post("/uploadAudio", (req: any, res: Response) => {
+    const albumName = req.body.albumName;
+    const downloads = req.body.downloads;
+    const favoriteTo = req.body.favoriteTo;
+    const uploadingDate = req.body.uploadingDate;
     const file = req.files.file;
-    const albumName = "3 Idiots";
+
     const imageList = [];
     const musicList = [];
     fs.mkdirSync(`${__dirname}/audios/${albumName}`);
     for (let index = 0; index < file.length; index++) {
-      const newFile = file[index].data;
-      const encFile = newFile.toString("base64");
       const fileObj = {
         contentType: file[index].mimetype,
         size: file[index].size,
@@ -59,10 +61,20 @@ client.connect((err: any) => {
         musicList.push(fileObj);
       }
     }
+    console.log("body ", req.body, "files ", req.files);
 
-    audiosCollection.insertOne({ imageList, musicList }).then((result: any) => {
-      res.send(result.insertedCount > 0);
-    });
+    audiosCollection
+      .insertOne({
+        albumName,
+        downloads,
+        favoriteTo,
+        uploadingDate,
+        imageList,
+        musicList,
+      })
+      .then((result: any) => {
+        res.send(result.insertedCount > 0);
+      });
   });
 });
 
