@@ -98,6 +98,4 @@ client.connect((err: any) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
-});
+app.listen(process.env.PORT || port);
