@@ -5,6 +5,29 @@ const { MongoClient, ServerApiVersion } = require("mongodb");
 const fileUpload = require("express-fileupload");
 const fs = require("fs");
 
+require("dotenv").config();
+
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: "derj0f1pt",
+  api_key: "571272884278399",
+  api_secret: "q4DwAlyepHvpv4Sv7kgG0FhIo7Q",
+});
+console.log("cloud_name", cloudinary.config().cloud_name);
+
+cloudinary.uploader
+  .upload(
+    `${__dirname}/audios/3 Idiots/Aal Izz Well  3 Idiots  Aamir Khan Madhavan Sharman J  Sonu N Swanand K  Shaan  Shantanu M.mp3`,
+    { public_id: "audios/3 Idiots/Aal Izz Well", resource_type: "auto" }
+  )
+  .then((result: any) => {
+    console.log("Success", JSON.stringify(result, null, 2));
+  })
+  .catch((error: any) => {
+    console.log("error", JSON.stringify(error, null, 2));
+  });
+
 const app: Application = express();
 app.use(bodyParser.json());
 app.use(cors());
