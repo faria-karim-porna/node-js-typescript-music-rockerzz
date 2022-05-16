@@ -4,29 +4,31 @@ const cors = require("cors");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const fileUpload = require("express-fileupload");
 const fs = require("fs");
-const cloudinary = require("cloudinary").v2;
-const app: Application = express();
+
 require("dotenv").config();
 
-app.use(bodyParser.json());
-app.use(cors());
-app.use(fileUpload());
-const port: number = 5000;
-
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.qs1yz.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
-
-const client = new MongoClient(uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverApi: ServerApiVersion.v1,
-});
+const cloudinary = require("cloudinary").v2;
 
 cloudinary.config({
   cloud_name: "derj0f1pt",
   api_key: "571272884278399",
   api_secret: "q4DwAlyepHvpv4Sv7kgG0FhIo7Q",
 });
-console.log("cloud_name", cloudinary.config().cloud_name);
+
+const app: Application = express();
+app.use(bodyParser.json());
+app.use(cors());
+app.use(fileUpload());
+require("dotenv").config();
+const port: number = 5000;
+
+const uri =
+  "mongodb+srv://dbUser:JGbWQtUaES8sUQ5X@cluster0.7phu3.mongodb.net/RockerzzDB?retryWrites=true&w=majority";
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverApi: ServerApiVersion.v1,
+});
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello World!");
@@ -35,17 +37,6 @@ app.get("/", (req: Request, res: Response) => {
 client.connect((err: any) => {
   const audiosCollection = client.db("RockerzzDB").collection("Audios");
   console.log("database");
-  cloudinary.uploader
-    .upload(
-      `${__dirname}/audios/3 Idiots/Aal Izz Well  3 Idiots  Aamir Khan Madhavan Sharman J  Sonu N Swanand K  Shaan  Shantanu M.mp3`,
-      { public_id: "audios/3 Idiots/Aal Izz Well", resource_type: "auto" }
-    )
-    .then((result: any) => {
-      console.log("Success", JSON.stringify(result, null, 2));
-    })
-    .catch((error: any) => {
-      console.log("error", JSON.stringify(error, null, 2));
-    });
   // const usersCollection = client.db("creativeAgency").collection("users");
   // const adminsCollection = client.db("creativeAgency").collection("admins");
   // const reviewsCollection = client.db("creativeAgency").collection("reviews");
@@ -57,15 +48,12 @@ client.connect((err: any) => {
     const uploadingDate = req.body.uploadingDate;
     const file = req.files.file;
 
-    const imageList = [];
-    const musicList = [];
+    const imageList: any = [];
+    const musicList: any = [];
     fs.mkdirSync(`${__dirname}/audios/${albumName}`);
+    let fileObj = {};
+    let fileCount = 0;
     for (let index = 0; index < file.length; index++) {
-      const fileObj = {
-        contentType: file[index].mimetype,
-        size: file[index].size,
-        filePath: `audios/${albumName}/${file[index].name}`,
-      };
       file[index].mv(
         `${__dirname}/audios/${albumName}/${file[index].name}`,
         (err: any) => {
@@ -75,27 +63,52 @@ client.connect((err: any) => {
           }
         }
       );
-      if (file[index].mimetype === "image/jpeg") {
-        imageList.push(fileObj);
-      } else {
-        musicList.push(fileObj);
-      }
-    }
-    console.log("body ", req.body, "files ", req.files);
 
-    audiosCollection
-      .insertOne({
-        albumName,
-        downloads,
-        favoriteTo,
-        uploadingDate,
-        imageList,
-        musicList,
-      })
-      .then((result: any) => {
-        res.send(result.insertedCount > 0);
-      });
+      cloudinary.uploader
+        .upload(`${__dirname}/audios/${albumName}/${file[index].name}`, {
+          public_id: `audios/${albumName}/${file[index].name}`,
+          resource_type: "auto",
+        })
+        .then((result: any) => {
+          fileCount = fileCount + 1;
+          fileObj = {
+            contentType: file[index].mimetype,
+            size: file[index].size,
+            filePath: result.url,
+          };
+          if (file[index].mimetype === "image/jpeg") {
+            imageList.push(fileObj);
+          } else {
+            musicList.push(fileObj);
+          }
+        })
+        .then((result: any) => {
+          if (fileCount === file.length) {
+            audiosCollection
+              .insertOne({
+                albumName,
+                downloads,
+                favoriteTo,
+                uploadingDate,
+                imageList,
+                musicList,
+              })
+              .then((result: any) => {
+                fs.rmdirSync(`${__dirname}/audios/${albumName}`, {
+                  recursive: true,
+                });
+                console.log("Successfully Inserted");
+                res.send(result.insertedCount > 0);
+              });
+          }
+        })
+        .catch((error: any) => {
+          console.log("error", JSON.stringify(error, null, 2));
+        });
+    }
   });
 });
 
-app.listen(process.env.PORT || port);
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});
