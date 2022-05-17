@@ -4,12 +4,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const dotenv_1 = __importDefault(require("dotenv"));
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const fileUpload = require("express-fileupload");
 const fs = require("fs");
-require("dotenv").config();
+dotenv_1.default.config();
 const cloudinary = require("cloudinary").v2;
 cloudinary.config({
     cloud_name: "derj0f1pt",
@@ -22,7 +23,7 @@ app.use(cors());
 app.use(fileUpload());
 require("dotenv").config();
 const port = 5000;
-const uri = "mongodb+srv://dbUser:JGbWQtUaES8sUQ5X@cluster0.7phu3.mongodb.net/RockerzzDB?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.7phu3.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -100,6 +101,4 @@ client.connect((err) => {
         }
     });
 });
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
-});
+app.listen(process.env.PORT || port);
