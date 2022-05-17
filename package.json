@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "npx tsc && node build/app.js",
+    "start": "node build/app.js",
+    "build": "tsc",
+    "start:dev": "npx tsc && node build/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
