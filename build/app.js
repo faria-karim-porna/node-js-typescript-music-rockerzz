@@ -46,18 +46,13 @@ client.connect((err) => {
         const file = req.files.file;
         const imageList = [];
         const musicList = [];
-        fs.mkdirSync(`${__dirname}/audios/${albumName}`);
         let fileObj = {};
         let fileCount = 0;
         for (let index = 0; index < file.length; index++) {
-            file[index].mv(`${__dirname}/audios/${albumName}/${file[index].name}`, (err) => {
-                if (err) {
-                    console.log(err);
-                    return res.status(500).send({ msg: "Failed To Upload" });
-                }
-            });
+            const encFile = file[index].data.toString("base64");
+            const uploadedFile = `data:${file[index].mimetype};base64,` + encFile;
             cloudinary.uploader
-                .upload(`${__dirname}/audios/${albumName}/${file[index].name}`, {
+                .upload(uploadedFile, {
                 public_id: `audios/${albumName}/${file[index].name}`,
                 resource_type: "auto",
             })
@@ -87,16 +82,12 @@ client.connect((err) => {
                         musicList,
                     })
                         .then((result) => {
-                        fs.rmdirSync(`${__dirname}/audios/${albumName}`, {
-                            recursive: true,
-                        });
-                        console.log("Successfully Inserted");
-                        res.send(result.insertedCount > 0);
+                        console.log("Inserted Successfully");
                     });
                 }
             })
                 .catch((error) => {
-                console.log("error", JSON.stringify(error, null, 2));
+                console.log("error", error.substring(0, 100));
             });
         }
     });
