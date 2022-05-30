@@ -81,8 +81,15 @@ client.connect((err) => {
                         imageList,
                         musicList,
                     })
-                        .then((result) => {
-                        console.log("Inserted Successfully");
+                        .then((result, err) => {
+                        if (err) {
+                            console.log("error");
+                            res.send(err);
+                        }
+                        else {
+                            console.log("Inserted Successfully");
+                            res.status(200).send();
+                        }
                     });
                 }
             })
