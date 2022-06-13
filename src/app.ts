@@ -16,6 +16,12 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
+const JWT_SECRET =
+  "sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk";
+
 const app: Application = express();
 app.use(bodyParser.json());
 app.use(cors());
@@ -36,10 +42,10 @@ app.get("/", (req: Request, res: Response) => {
 
 client.connect((err: any) => {
   const audiosCollection = client.db("RockerzzDB").collection("Audios");
+  const videosCollection = client.db("RockerzzDB").collection("Videos");
+  const usersCollection = client.db("RockerzzDB").collection("Users");
+  const adminsCollection = client.db("RockerzzDB").collection("Admins");
   console.log("database");
-  // const usersCollection = client.db("creativeAgency").collection("users");
-  // const adminsCollection = client.db("creativeAgency").collection("admins");
-  // const reviewsCollection = client.db("creativeAgency").collection("reviews");
 
   app.post("/uploadAudio", (req: any, res: Response) => {
     const albumName = req.body.albumName;
@@ -99,6 +105,49 @@ client.connect((err: any) => {
           console.log("error", error.substring(0, 100));
         });
     }
+  });
+
+  app.post("/createAccount", (req: any, res: Response) => {
+    const {
+      name,
+      email,
+      password: plainTextPassword,
+      phone,
+      terms,
+      offers,
+    } = req.body;
+
+    if (!name || typeof name !== "string") {
+      return res.json({ status: "error", error: "Invalid username" });
+    }
+
+    if (!plainTextPassword || typeof plainTextPassword !== "string") {
+      return res.json({ status: "error", error: "Invalid password" });
+    }
+
+    if (plainTextPassword.length < 5) {
+      return res.json({
+        status: "error",
+        error: "Password too small. Should be atleast 6 characters",
+      });
+    }
+
+    const password = bcrypt.hashSync(plainTextPassword, 10);
+
+    usersCollection
+      .insertOne({
+        name,
+        email,
+        password,
+        phone,
+        terms,
+        offers,
+      })
+      .then((result: any) => {
+        if (result) {
+          res.json({ status: "Account Created Successfully" });
+        }
+      });
   });
 });
 
