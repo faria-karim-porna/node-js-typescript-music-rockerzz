@@ -149,6 +149,32 @@ client.connect((err: any) => {
         }
       });
   });
+
+  app.post("/login", (req: any, res: Response) => {
+    const { email, password } = req.body;
+    usersCollection.find({ email }).toArray((err: Error, user: any) => {
+      if (!user[0]) {
+        res.json({
+          status: "error",
+          error: "Invalid username/password",
+        });
+      } else if (bcrypt.compareSync(password, user[0].password)) {
+        const token = jwt.sign(
+          {
+            id: user[0]._id,
+            name: user[0].username,
+          },
+          JWT_SECRET
+        );
+        res.json({ status: "ok", data: token });
+      } else {
+        res.json({
+          status: "error",
+          error: "Invalid username/password",
+        });
+      }
+    });
+  });
 });
 
 app.listen(process.env.PORT || port);
